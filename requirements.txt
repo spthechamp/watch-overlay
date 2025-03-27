@@ -1,5 +1,7 @@
-mediapipe==0.10.5
-cvzone
-opencv-python
 streamlit
+opencv-python-headless
+mediapipe
+cvzone
 streamlit-webrtc
+av
+numpy
