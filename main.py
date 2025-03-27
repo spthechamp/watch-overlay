@@ -172,35 +172,103 @@ if app_mode == "Image":
                                        mime="image/jpeg")
                 os.unlink(temp_file.name)
 
+# elif app_mode == "Video":
+#     st.title("Hand Landmark Detection and Watch Overlay on Video")
+#     st.write("NOTE: Wrist watch will only be overlayed on the dorsal part of your right hand.")
+#     uploaded_video = st.file_uploader("Upload a video", type=["mp4", "avi", "mov", "mkv"])
+#     if uploaded_video is not None:
+#         if st.button("Process Video"):
+#             # Save uploaded video to a temporary file with .mp4 suffix.
+#             tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+#             tfile.write(uploaded_video.read())
+#             tfile.close()
+#             cap = cv2.VideoCapture(tfile.name)
+#             if not cap.isOpened():
+#                 st.error("Error: Unable to open the video file.")
+#             else:
+#                 # Get FPS, falling back to 25 if unavailable.
+#                 fps = cap.get(cv2.CAP_PROP_FPS)
+#                 if fps <= 0:
+#                     fps = 25
+#                 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+#                 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+#                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                
+#                 # Define output video path and use 'avc1' for H.264 encoding.
+#                 out_video_path = os.path.join(tempfile.gettempdir(), "processed_video.mp4")
+#                 fourcc = cv2.VideoWriter_fourcc(*'avc1')
+#                 out = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
+                
+#                 frame_count = 0
+#                 progress_bar = st.progress(0)
+#                 while True:
+#                     ret, frame = cap.read()
+#                     if not ret:
+#                         break
+#                     annotated_frame = detector.process_frame(frame)
+#                     out.write(annotated_frame)
+#                     frame_count += 1
+#                     if total_frames > 0:
+#                         progress_bar.progress(min(frame_count / total_frames, 1.0))
+#                 cap.release()
+#                 out.release()
+                
+#                 # Wait briefly to ensure the file is fully written.
+#                 time.sleep(3)
+                
+#                 # Read the processed video file bytes.
+#                 with open(out_video_path, "rb") as video_file:
+#                     video_bytes = video_file.read()
+#                 if len(video_bytes) == 0:
+#                     st.error("Error: Processed video file is empty.")
+#                 else:
+#                     st.success("Video processing completed!")
+#                     st.download_button(label="Download Processed Video",
+#                                        data=video_bytes,
+#                                        file_name="processed_video.mp4",
+#                                        mime="video/mp4")
+#             os.unlink(tfile.name)
+
+
 elif app_mode == "Video":
     st.title("Hand Landmark Detection and Watch Overlay on Video")
     st.write("NOTE: Wrist watch will only be overlayed on the dorsal part of your right hand.")
+    
     uploaded_video = st.file_uploader("Upload a video", type=["mp4", "avi", "mov", "mkv"])
+    
     if uploaded_video is not None:
         if st.button("Process Video"):
-            # Save uploaded video to a temporary file with .mp4 suffix.
+            # Save uploaded video to a temporary file
             tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
             tfile.write(uploaded_video.read())
             tfile.close()
+
             cap = cv2.VideoCapture(tfile.name)
             if not cap.isOpened():
                 st.error("Error: Unable to open the video file.")
             else:
-                # Get FPS, falling back to 25 if unavailable.
+                # Get FPS and frame size
                 fps = cap.get(cv2.CAP_PROP_FPS)
                 if fps <= 0:
-                    fps = 25
+                    fps = 25  # Fallback if FPS is unavailable
                 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                
-                # Define output video path and use 'avc1' for H.264 encoding.
+
+                # Define output video path
                 out_video_path = os.path.join(tempfile.gettempdir(), "processed_video.mp4")
                 fourcc = cv2.VideoWriter_fourcc(*'avc1')
                 out = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
-                
+
+                if not out.isOpened():
+                    st.error("Error: Could not create video writer.")
+                    cap.release()
+                    os.unlink(tfile.name)
+                    return
+
                 frame_count = 0
                 progress_bar = st.progress(0)
+                
                 while True:
                     ret, frame = cap.read()
                     if not ret:
@@ -210,24 +278,30 @@ elif app_mode == "Video":
                     frame_count += 1
                     if total_frames > 0:
                         progress_bar.progress(min(frame_count / total_frames, 1.0))
+
                 cap.release()
                 out.release()
+
+                # Ensure the file has been written before proceeding
+                time.sleep(2)  # Small delay to ensure file write completion
                 
-                # Wait briefly to ensure the file is fully written.
-                time.sleep(3)
-                
-                # Read the processed video file bytes.
-                with open(out_video_path, "rb") as video_file:
-                    video_bytes = video_file.read()
-                if len(video_bytes) == 0:
-                    st.error("Error: Processed video file is empty.")
+                if not os.path.exists(out_video_path):
+                    st.error(f"Error: Processed video file not found at {out_video_path}")
                 else:
-                    st.success("Video processing completed!")
-                    st.download_button(label="Download Processed Video",
-                                       data=video_bytes,
-                                       file_name="processed_video.mp4",
-                                       mime="video/mp4")
-            os.unlink(tfile.name)
+                    # Read the processed video file
+                    with open(out_video_path, "rb") as video_file:
+                        video_bytes = video_file.read()
+                    
+                    if len(video_bytes) == 0:
+                        st.error("Error: Processed video file is empty.")
+                    else:
+                        st.success("Video processing completed!")
+                        st.download_button(label="Download Processed Video",
+                                           data=video_bytes,
+                                           file_name="processed_video.mp4",
+                                           mime="video/mp4")
+
+                os.unlink(tfile.name)  # Remove temporary input file
 
 
 elif app_mode == "WebCam":
