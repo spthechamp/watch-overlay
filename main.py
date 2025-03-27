@@ -264,7 +264,8 @@ elif app_mode == "Video":
                     st.error("Error: Could not create video writer.")
                     cap.release()
                     os.unlink(tfile.name)
-                    return
+                    st.stop()  # Stop further execution in Streamlit
+
 
                 frame_count = 0
                 progress_bar = st.progress(0)
