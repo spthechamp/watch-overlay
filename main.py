@@ -229,7 +229,6 @@ if app_mode == "Image":
 #                                        mime="video/mp4")
 #             os.unlink(tfile.name)
 
-
 elif app_mode == "Video":
     st.title("Hand Landmark Detection and Watch Overlay on Video")
     st.write("NOTE: Wrist watch will only be overlayed on the dorsal part of your right hand.")
@@ -238,7 +237,7 @@ elif app_mode == "Video":
     
     if uploaded_video is not None:
         if st.button("Process Video"):
-            # Save uploaded video to a temporary file
+            # Save the uploaded video to a temporary file.
             tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
             tfile.write(uploaded_video.read())
             tfile.close()
@@ -247,25 +246,33 @@ elif app_mode == "Video":
             if not cap.isOpened():
                 st.error("Error: Unable to open the video file.")
             else:
-                # Get FPS and frame size
+                # Get video properties.
                 fps = cap.get(cv2.CAP_PROP_FPS)
                 if fps <= 0:
-                    fps = 25  # Fallback if FPS is unavailable
+                    fps = 25  # Use a default FPS if not available.
                 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-                # Define output video path
-                out_video_path = os.path.join(tempfile.gettempdir(), "processed_video.mp4")
-                fourcc = cv2.VideoWriter_fourcc(*'avc1')
-                out = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
-
-                if not out.isOpened():
-                    st.error("Error: Could not create video writer.")
+                
+                if width == 0 or height == 0:
+                    st.error("Error: Invalid video dimensions.")
                     cap.release()
                     os.unlink(tfile.name)
-                    st.stop()  # Stop further execution in Streamlit
+                    st.stop()
 
+                # Define the output video path.
+                out_video_path = os.path.join(tempfile.gettempdir(), "processed_video.mp4")
+                
+                # Use 'mp4v' as the codec which is more widely supported.
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                out = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
+
+                # Test if VideoWriter opened successfully.
+                if not out.isOpened():
+                    st.error("Error: Could not create video writer. Please check codec and video properties.")
+                    cap.release()
+                    os.unlink(tfile.name)
+                    st.stop()
 
                 frame_count = 0
                 progress_bar = st.progress(0)
@@ -279,17 +286,15 @@ elif app_mode == "Video":
                     frame_count += 1
                     if total_frames > 0:
                         progress_bar.progress(min(frame_count / total_frames, 1.0))
-
                 cap.release()
                 out.release()
 
-                # Ensure the file has been written before proceeding
-                time.sleep(2)  # Small delay to ensure file write completion
+                # Wait briefly to ensure the file is fully written.
+                time.sleep(2)
                 
                 if not os.path.exists(out_video_path):
                     st.error(f"Error: Processed video file not found at {out_video_path}")
                 else:
-                    # Read the processed video file
                     with open(out_video_path, "rb") as video_file:
                         video_bytes = video_file.read()
                     
@@ -301,8 +306,8 @@ elif app_mode == "Video":
                                            data=video_bytes,
                                            file_name="processed_video.mp4",
                                            mime="video/mp4")
+            os.unlink(tfile.name)
 
-                os.unlink(tfile.name)  # Remove temporary input file
 
 
 elif app_mode == "WebCam":
