@@ -3,5 +3,5 @@ opencv-python-headless
 mediapipe
 cvzone
 streamlit-webrtc
-av
 numpy
+av
