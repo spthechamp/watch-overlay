@@ -172,85 +172,6 @@ if app_mode == "Image":
                                        mime="image/jpeg")
                 os.unlink(temp_file.name)
 
-# elif app_mode == "Video":
-#     st.title("Hand Landmark Detection and Watch Overlay on Video")
-#     st.write("NOTE: Wrist watch will only be overlayed on the dorsal part of your right hand.")
-    
-#     uploaded_video = st.file_uploader("Upload a video", type=["mp4", "avi", "mov", "mkv"])
-    
-#     if uploaded_video is not None:
-#         if st.button("Process Video"):
-#             # Save the uploaded video to a temporary file.
-#             tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-#             tfile.write(uploaded_video.read())
-#             tfile.close()
-
-#             cap = cv2.VideoCapture(tfile.name)
-#             if not cap.isOpened():
-#                 st.error("Error: Unable to open the video file.")
-#             else:
-#                 # Get video properties.
-#                 fps = cap.get(cv2.CAP_PROP_FPS)
-#                 if fps <= 0:
-#                     fps = 25  # Use a default FPS if not available.
-#                 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-#                 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-#                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                
-#                 if width == 0 or height == 0:
-#                     st.error("Error: Invalid video dimensions.")
-#                     cap.release()
-#                     os.unlink(tfile.name)
-#                     st.stop()
-
-#                 # Define the output video path.
-#                 out_video_path = os.path.join(tempfile.gettempdir(), "processed_video.mp4")
-                
-#                 # Use 'mp4v' as the codec which is more widely supported.
-#                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-#                 out = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
-
-#                 # Test if VideoWriter opened successfully.
-#                 if not out.isOpened():
-#                     st.error("Error: Could not create video writer. Please check codec and video properties.")
-#                     cap.release()
-#                     os.unlink(tfile.name)
-#                     st.stop()
-
-#                 frame_count = 0
-#                 progress_bar = st.progress(0)
-                
-#                 while True:
-#                     ret, frame = cap.read()
-#                     if not ret:
-#                         break
-#                     annotated_frame = detector.process_frame(frame)
-#                     out.write(annotated_frame)
-#                     frame_count += 1
-#                     if total_frames > 0:
-#                         progress_bar.progress(min(frame_count / total_frames, 1.0))
-#                 cap.release()
-#                 out.release()
-
-#                 # Wait briefly to ensure the file is fully written.
-#                 time.sleep(2)
-                
-#                 if not os.path.exists(out_video_path):
-#                     st.error(f"Error: Processed video file not found at {out_video_path}")
-#                 else:
-#                     with open(out_video_path, "rb") as video_file:
-#                         video_bytes = video_file.read()
-                    
-#                     if len(video_bytes) == 0:
-#                         st.error("Error: Processed video file is empty.")
-#                     else:
-#                         st.success("Video processing completed!")
-#                         st.download_button(label="Download Processed Video",
-#                                            data=video_bytes,
-#                                            file_name="processed_video.mp4",
-#                                            mime="video/mp4")
-#             os.unlink(tfile.name)
-
 elif app_mode == "Video":
     st.title("Hand Landmark Detection and Watch Overlay on Video")
     st.write("NOTE: Wrist watch will only be overlayed on the dorsal part of your right hand.")
@@ -285,7 +206,7 @@ elif app_mode == "Video":
                 # Define the output video path.
                 out_video_path = os.path.join(tempfile.gettempdir(), "processed_video.mp4")
                 
-                # Use 'mp4v' as the codec which is widely supported.
+                # Use 'mp4v' as the codec which is more widely supported.
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 out = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
 
@@ -324,15 +245,11 @@ elif app_mode == "Video":
                         st.error("Error: Processed video file is empty.")
                     else:
                         st.success("Video processing completed!")
-                        # Display the processed video on-screen
-                        st.video(video_bytes)
-                        # Provide a download button for the processed video
                         st.download_button(label="Download Processed Video",
                                            data=video_bytes,
                                            file_name="processed_video.mp4",
                                            mime="video/mp4")
             os.unlink(tfile.name)
-
 
 
 elif app_mode == "WebCam":
