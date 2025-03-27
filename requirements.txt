@@ -1,8 +1,7 @@
 streamlit
-opencv-python
 opencv-python-headless
+numpy
 mediapipe
 cvzone
 streamlit-webrtc
-numpy
 av
